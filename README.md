@@ -7,7 +7,7 @@ Deploying the same app to Compute Engine, App Engine, Cloud Functions and Cloud 
 
 ## Hosting options
 
-- **[Local]** -- use localhost to run the app.
+- **Local** -- use localhost to run the app.
 - **[Compute Engine](https://cloud.google.com/products/compute?hl=en)** -- create and run online VMs on high-performance, reliable cloud infrastructure. (app-hosting in the cloud: "IaaS") This would be your option when you need a server control or VMs level full control.
 - **[App Engine](https://cloud.google.com/appengine)** (standard environment) — fully-managed serverless service. Develoeprs don't need to maintain infrastructure. You can use Node.js, Java, Ruby, C#, Go, Python or PHP. (app-hosting in the cloud; "PaaS")
   - _App Engine_ is for users who wish to deploy a traditional (but not containerized) web application direct from source code.
@@ -46,7 +46,8 @@ $ gcloud projects add-iam-policy-binding PROJECT_ID  --member=user:SERVICE_ACCOU
 $ export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/service-account-file.json"
 ```
 
-- Enable API
+- Enable billing
+- Enable API: Google API you want to use must be enabled.
 
 **TL;DR:** application files (`index.js` &amp; `package.json`). Instructions:
 
@@ -56,11 +57,30 @@ $ export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/service-account-fi
 
 ## **App Engine (Node 10, 12, 14, 16)**
 
-**TL;DR:** application files plus `app.yaml`. You may (first) edit `app.yaml` to specify the desired Node version (default: Node 16). Instruction(s):
+- Update app.yaml to use the latest version of Node.js
 
-1. **Run** `gcloud app deploy` to deploy to App Engine
-   - You'll be prompted for the REGION if deploying to App Engine the first time.
-   - App Engine apps are tied to one region, so it can't be changed once it's set, meaning you won't be prompted thereafter.
+```
+runtime: nodejs20
+```
+
+- Update timeout: it gets timedout if you deploy without updating the config
+
+```
+$ gcloud config set app/cloud_build_timeout 1200
+```
+
+- Update IAM and its Role: make sure target service account you are using has permission for App Engine. (It took time to figure it out.)
+  This command shows which service account has which role.
+
+```
+$ gcloud projects get-iam-policy PROJECT_ID
+```
+
+- Deploy the app to App Engine
+
+```
+$ gcloud app deploy
+```
 
 ## **Cloud Functions (Node 10, 12, 14, 16)**
 
