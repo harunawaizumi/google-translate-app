@@ -3,7 +3,8 @@
 ## Description
 
 This is my experiment to demonstrate how to call Google APIs from Google Compute Engine and Google Cloud serverless compute platforms.
-Deploying the same app to Compute Engine, App Engine, Cloud Functions and Cloud Run is possible without code changes (all done in configuration)
+Deploying the same app to Compute Engine, App Engine, Cloud Functions, Cloud Run and locally is possible without code changes (all done in configuration)
+Followed by this tutorial [Deploy a basic "Google Translate" on App Engine, Cloud Functions and Cloud Run](https://codelabs.developers.google.com/codelabs/cloud-nebulous-serverless-nodejs#0)
 
 ## Hosting options
 
@@ -55,7 +56,7 @@ $ export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/service-account-fi
 1. **Run** `gcloud auth application-default login` to set your credentials
 1. **Run** `npm start` to run locally
 
-## **App Engine (Node 10, 12, 14, 16)**
+## **App Engine (Node 20)**
 
 - Update app.yaml to use the latest version of Node.js
 
@@ -82,23 +83,28 @@ $ gcloud projects get-iam-policy PROJECT_ID
 $ gcloud app deploy
 ```
 
-## **Cloud Functions (Node 10, 12, 14, 16)**
+## **Cloud Functions (Node 16)**
 
 **TL;DR:** Uses only the application files. Instruction(s):
 
-1. **Run** `gcloud functions deploy translate --runtime nodejs16 --entry-point app --trigger-http --allow-unauthenticated` to deploy to Cloud Functions (or Node 10, 12, 14)
-   - You'll be prompted for the REGION if deploying a Cloud Function the first time.
-   - Cloud Functions can be deployed to different regions within a project, but once the region has been set for a function, it cannot be changed.
+- Deploy the app to Cloud Functions
+  You'll be prompted for the REGION if deploying a Cloud Function the first time.
+  Cloud Functions can be deployed to different regions within a project, but once the region has been set for a function, it cannot be changed.
 
-The command creates &amp; deploys a new HTTP-triggered Cloud Function named `translate`. Cloud Functions is directed to call the application object, `app`, via `--entry-point`. During execution `translate()` is called by `app`. In the [Python version](../python), `--entry-point` is unnecessary because `translate()` _is_ the application entry point.
+```
+$ gcloud functions deploy translate --runtime nodejs16 --entry-point app --trigger-http --allow-unauthenticated
+```
 
-## **Cloud Run (Node 10+ via Cloud Buildpacks)**
+The command creates &amp; deploys a new HTTP-triggered Cloud Function named `translate`.
+Cloud Functions is directed to call the application object, `app`, via `--entry-point`. During execution `translate()` is called by `app`.
+
+## **Cloud Run (Node 16 via Cloud Buildpacks)**
 
 **TL;DR:** Uses only the application files. Instruction(s):
 
 1. **Run** `gcloud run deploy translate --allow-unauthenticated --platform managed --source .` to deploy to Cloud Run
    - You'll be prompted to provide a REGION unless you also add `--region REGION` on the cmd-line which will give you a full non-interactive deploy
-   - A `Dockerfile` is optional, but if you wish to create one, place it in the top-level folder so the build system can access it. Also see the [Python version's `Dockerfile`](../python/Dockerfile) to get an idea of what a Node equivalent would be similar to.
+   - Buildpack creates container images to run on Google Cloud Services. You don't need any docker or container knowledge.
 
 ## References
 
@@ -109,10 +115,6 @@ These are relevant links only to the app in this folder (for all others, see the
 - [Node.js Cloud Functions quickstart](https://cloud.google.com/functions/docs/quickstart-nodejs)
 - [Node.js Cloud Run quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy/nodejs)
 - [Express.js](https://expressjs.com)
-
-## Testing
-
-Testing is driven by [`mocha`](https://mochajs.org) which uses [`supertest`](https://github.com/visionmedia/supertest) for testing and [`eslint`](https://eslint.org) for linting, installing both in virtual environments along with application dependencies, `express`, `nunjucks`, and `@google-cloud/translate`. To run the unit tests (testing `GET` and `POST` requests), run `npm install` followed by `npm test`).
 
 ### Expected output
 
@@ -134,36 +136,17 @@ DONE
   2 passing (170ms)
 ```
 
-### Troubleshooting
+### Useful Commands
 
-When running the test, there's a situation which resulting in the test hanging like this:
+List user managed service accounts (name, email, status)
 
 ```
-$ npm test
-
-> cloud-nebulous-serverless-nodejs@0.0.1 test
-> mocha test/test_neb.js
-
-Listening on port 8080
-
-
-  Our application
-    ✔ GET / should result in HTML w/"translate" in the body
-    1) POST / should have translated "hello world" correctly
-DONE
-
-
-  1 passing (2s)
-  1 failing
-
-  1) Our application
-       POST / should have translated "hello world" correctly:
-     Error: Timeout of 2000ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves. (/tmp/cloud-nebulous-serverless/cloud/nodejs/test/test_neb.js)
-      at listOnTimeout (node:internal/timers:557:17)
-      at processTimers (node:internal/timers:500:7)
+$ gcloud iam service-accounts list
 
 ```
 
-_(hangs here)_
+List users managed and Google-managed service accounts (name, email, status, roles)
 
-If this happens to you, **run** `gcloud auth application-default login` to set your credentials and try again.
+```
+$ gcloud projects get-iam-policy PROJECT_ID
+```
