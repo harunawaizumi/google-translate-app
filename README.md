@@ -56,7 +56,7 @@ $ export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/service-account-fi
 1. **Run** `gcloud auth application-default login` to set your credentials
 1. **Run** `npm start` to run locally
 
-## **App Engine (Node 20)**
+## **App Engine (Node 16)**
 
 - Update app.yaml to use the latest version of Node.js
 
